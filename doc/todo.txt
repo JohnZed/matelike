@@ -1,0 +1,4 @@
+- Try out Matlab R2008a solvers
+- Add docs for Ipopt
+
+

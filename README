@@ -1,0 +1,83 @@
+MatELike (version 0.1.4)
+John Zedlewski (jzedlewski@hbs.edu)
+
+DESCRIPTION:
+
+MatELike is a Matlab package to estimate Empirical Likelihood (EL)
+models by direct maximization. It includes tools to formulate problems
+easily and use automatic differentiation to efficiently estimate
+models with nonlinear moment conditions. It can use the robust
+optimization code Ipopt (which must be installed separately) or the
+included ZIPsolver interior-point optimization method to solve the
+very large maximization problems that arise in EL.
+
+INSTALLATION:
+
+To install MatELike, unzip the matelike archive and place the
+resulting melroot directory wherever you like to store your Matlab
+code. Add the subdirectory "melroot/matelike" to your Matlab
+path with a command like:
+
+   addpath c:/matlab/melroot/matelike
+
+where c:/matlab is replaced with the base directory in which matelike
+is stored. Edit the file matelike/elLoad.m so that the variable
+BASEPATH points to the directory where MatELike is installed. Now the
+package is installed, but you must load it into Matlab's memory in
+each session before you can use it. Load the package with the command:
+
+   elLoad
+
+you should see some output and then "Loaded matElike verson 0.1.4
+package successfully". To avoid repeating these steps every time you
+run Matlab, you can add those commands to your 'startup.m' file
+(search the Matlab help docs for startup.m for information on how to
+do this).
+
+Usage:
+
+More documentation coming soon! Individual functions have usage
+documentation, so look at the source or type 'help elSetup' and
+'help elSolve' in Matlab to view the docs.
+
+For now, look at 'simpleDemoEL.m' (under 'matelike/demos') to see a
+trivial usage. (Currently, simpleDemo makes little sense as a model,
+but it illustrates the code usage.) testDP.m is a more complicated
+dynamic panel data model, based on Imbens 2002 JBES.
+
+The only real steps are:
+
+- write a function that computes the moment conditions for each observation
+- call 'elike = elSetup(...)', specifying the number of observations, etc.
+- call 'res = elSolve(elike, ...)' to solve the model
+
+For linear two-stage-least-squares models, the 'elLinearIV' function
+is much more efficient than using 'elSolve' directly. To use
+'elLinearIV' you can skip the 'elSetup' step: just put your
+instruments (Z) and structural variables (X) in to matrices and pass
+them into 'elLinearIV'. The moment condition is that 'y - X*theta' is
+orthogonal to 'Z'.
+
+
+REQUIREMENTS:
+
+Tested on Matlab 7.4 and 7.6. For large models, a 64-bit platform is
+very helpful. The Ipopt code is tested with Ipopt 3.3.4 with the
+Matlab mex bridge.
+
+LICENSE:
+
+MatELike includes Intlab, which is copyright by Siegfried Rump @
+TUHH. That package's license states that:
+
+"INTLAB is free for private use and for purely academic purposes
+provided proper reference is given acknowledging that the software
+package INTLAB has been developed by Siegfried M. Rump at Hamburg
+University of Technology, Germany. For any other use of INTLAB a
+license is required." (See also: http://www.ti3.tu-harburg.de/rump/intlab/)
+
+All other components are copyright 2008 by John Zedlewski and are
+distributed under the same license: Free use for academic and/or
+personal purposes is permitted as long as this authorship is
+acknowledged.
+

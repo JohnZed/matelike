@@ -1,0 +1,62 @@
+\begin{thebibliography}{7}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{\texttt{#1}}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi: #1}\else
+  \providecommand{\doi}{doi: \begingroup \urlstyle{rm}\Url}\fi
+
+\bibitem[Hansen et~al.(1996)Hansen, Heaton, and Yaron]{Hansen:1996p555}
+L~Hansen, J~Heaton, and A~Yaron.
+\newblock Finite-sample properties of some alternative gmm estimators.
+\newblock \emph{Journal of Business {\&} Economic Statistics}, Jan 1996.
+\newblock URL
+  \url{http://links.jstor.org/sici?sici=0735-0015(199607)14%253A3%253C262%253A%
+FPOSAG%253E2.0.CO%253B2-P}.
+
+\bibitem[Imbens(2002)]{Imbens:2002p381}
+G~Imbens.
+\newblock Generalized method of moments and empirical likelihood.
+\newblock \emph{Journal of Business {\&} Economic Statistics}, Jan 2002.
+\newblock URL
+  \url{http://www.ingentaconnect.com/content/asa/jbes/2002/00000020/00000004/a%
+rt00008}.
+
+\bibitem[Imbens et~al.(1998)Imbens, Spady, and Johnson]{Imbens:1998p513}
+G~Imbens, R~Spady, and P~Johnson.
+\newblock Information theoretic approaches to inference in moment condition
+  models.
+\newblock \emph{Econometrica}, Jan 1998.
+\newblock URL
+  \url{http://links.jstor.org/sici?sici=0012-9682(199803)66%253A2%253C333%253A%
+ITATII%253E2.0.CO%253B2-M}.
+
+\bibitem[Mittelhammer(2003)]{Mittelhammer:2003p508}
+R~Mittelhammer.
+\newblock Empirical evidence concerning the finite sample performance of
+  el-type structural equation {\ldots}.
+\newblock \emph{emlab.berkeley.edu}, Jan 2003.
+\newblock URL \url{http://emlab.berkeley.edu/symposia/nsf01/judge_p.pdf}.
+
+\bibitem[Mullahy(1997)]{Mullahy:1997p1042}
+J~Mullahy.
+\newblock Instrumental-variable estimation of count data models: Applications
+  to models of cigarette smoking {\ldots}.
+\newblock \emph{The Review of Economics and Statistics}, Jan 1997.
+\newblock URL
+  \url{http://www.mitpressjournals.org/doi/pdf/10.1162/003465397557169}.
+
+\bibitem[Newey and Smith(2004)]{Newey:2004p495}
+W~Newey and R~Smith.
+\newblock Higher order properties of gmm and generalized empirical likelihood
+  estimators.
+\newblock \emph{Econometrica}, Jan 2004.
+\newblock URL
+  \url{http://www.blackwell-synergy.com/doi/abs/10.1111/j.1468-0262.2004.00482%
+.x}.
+
+\bibitem[Owen(2001)]{Owen:2001p759}
+Art~B Owen.
+\newblock Empirical likelihood.
+\newblock \emph{Chapman {\&} Hall/CRC}, 2001.
+
+\end{thebibliography}

@@ -1,0 +1,371 @@
+
+\subsection*{elLoad}
+
+You MUST call \texttt{elLoad} before using any other \melike
+functions.
+
+\begin{lstlisting}[commentstyle=\ttfamily]
+function elLoad(withIpopt, forceReload)
+% Loads ipopt, matelike, and intlab libraries
+%
+% USAGE:
+%     elLoad
+%  or:
+%     elLoad(withIpopt, forceReload)
+%
+% If you use the second form and 'withIpopt' is true, then the Ipopt solver
+% will be loaded. If you call elLoad twice, the second call will do nothing,
+% unless the 'forceReload' option is set to true. The first form, with no
+% arguments, will work fine for most users of the default zipsolver method.
+% 
+% IMPORTANT: You will need to edit BASEPATH below to point to the directory
+% containing the 'matelike'  and 'zipsolver' folders on your system.
+%
+\end{lstlisting}
+
+\linesect{elSetup}
+\begin{lstlisting}[commentstyle=\ttfamily]
+% Initializes an EL (or other Cressie-Read) problem
+%
+% Usage:
+%
+%   elike = elSetup(nObs, nMom, nTheta, momFunction, ...)
+%
+% Inputs:
+%     'nObs', 'nMom', 'nTheta' are the number of observations, number of
+%          moment conditions, and number of elements in theta
+%
+%     Extra arguments may follow 'momFunction' to set various options
+%         for the optimization process. Options are specified as pairs,
+%         where the first argument is the option name and the second
+%         is the option value, like:
+%
+%             elSetup(nobs,nmom,ntheta,func, 'verbose', false)
+%
+%         which sets the 'verbose' option to false, greatly reducing the
+%         output displayed.
+%
+%     'momFunction' is a function handle to compute the moment
+%         conditions for each observation, with the form:
+%      
+%        M = momFunction(theta, elike, mnum, newTheta)
+%
+%          'mnum' indicates which moment to evaluate, 'theta' is the point
+%          at which to evaluate it, and 'elike' is the same structure
+%          that was returned from elSetup. If you need to pass additional
+%          paraneters to your function, you can stash them in 'elike' as
+%          fields.
+%
+%          'newTheta' is true if this theta differs from the one
+%          that was passed in the most recent call. If you need to
+%          precompute some values only once for each theta, 'newTheta'
+%          tells you when it's time to redo that computation.
+%
+%          The returned value M should be an nObs x 1 vector containing
+%          moment condition 'mnum' evaluated at each observation.
+%          
+%     *** IMPORTANT restrictions on momFunction ***
+%
+%          elSolve will use automatic differentiation (AD) to compute the
+%          derivatives of momFunction. For smooth functions computed
+%          analytically, this should work transparently. It will NOT work if
+%          momFunction uses some iterative algorithm internally, is
+%          non-differentiable, or uses some obscure external functions that
+%          are not understood by the differentiation library (Intlab).
+%
+%          The matrix returned by momFunction must be of the special
+%          AD type. This will happen by automatically if the result is
+%          produced by operations involving 'theta', but it will fail
+%          if you manually initialize M with something like 'M =
+%          zeros(nObs,1)'. If you find this initialization convenient,
+%          you can use: 'M = zeros(nObs,1) * theta(1)', which will
+%          ensure that M has the correct type.
+%
+%          If automatic differentiation is not suitable for your model, you
+%          can provide functions in 'elike.userCompJac' and
+%          'elike.userCompHessTheta' to compute them. (See elLinearIV for
+%          an example.)
+%
+% Output:
+%
+%     'elike' is a structure that can be passed to elSolve
+%
+% Requirements:
+%
+%     You must have Intlab installed to use elSetup. You also need
+%     to call 'elLoad' sometime before elSetup to initialize the
+%     matelike library.
+%
+\end{lstlisting}
+
+\linesect{elSolve}
+
+\begin{lstlisting}[commentstyle=\ttfamily]
+function res = elSolve(elike, meth, thetaGuess, pguess, varargin)
+% Solves the empirical likelihood (or other CR-family) model in elike
+%
+% Primary usage:
+%
+%    res = elSolve(elike, method, thetaGuess, pguess, ...)
+%
+% Inputs:
+% 
+%   'elike' is a structure containing the problem definition. It must
+%           be created by:  elike = elSetup(...);  See 'help elSetup'
+%
+%   'method' specifies which objective function to use. It can be 'EL'
+%           for empirical likelihood, 'ET' for exponential tilting, or a
+%           numerical value indicating the Cressie-Read lambda parmeter to
+%           use. If 'method' is 'GMM', a simple two-stage GMM estimator
+%           will be used (ignoring pguess and other EL-specific params).
+%            
+%   'thetaGuess' is the starting value for the theta parameters.
+%
+%   'pguess' is an optional starting value for the pi parameters. If this
+%            argument is empty ([]) or omitted, pi=1/N will be used.
+%
+%
+% Outputs:
+%
+%   'res' is a structure containing:
+%
+%      'res.theta'   -- estimated value for theta
+%      'res.lagmult' -- lagrange multipliers on moment constraints
+%      'res.p'       -- estimated pi for each observation
+%      'res.numiter' -- number of iterations taken
+%      'res.fval'    -- value of objective function at optimum
+%
+%
+% Details:
+%
+%   elSolve will use the 'zipsolver' matlab package by default. If you
+%   have Ipopt and its matlab interface installed, set 'elike.useIpopt = true'
+%   to use it (Ipopt is more robust and, for large problems, faster than
+%   zipsolver).
+%
+%   See 'help elSetup' for more info on configuring EL problems.
+%   
+\end{lstlisting}
+
+\linesect{elLinearIV}
+
+\begin{lstlisting}[commentstyle=\ttfamily]
+function res = elLinearIV(X, Z, y, elMethod, varargin)
+% Solves a linear instrumental variables problem with EL
+%
+% Usage:
+%
+%   res = elLinearIV(X, Z, y, elMethod)
+%
+%   'X' is a matrix containing the structural variables
+%   'Z' is a matrix containing the instruments
+%   'y' is a vector of the dependent variable
+%   'elMethod' specifies the method to use ('EL','ET', or a Cressie-Read lambda
+%       value). You can omit this argument to use the default 'EL'
+%
+%  The returned structure 'res' is the same as that returned by elSolve. The
+%  field 'res.theta' contains the estimates for the coefficients on X. Note that
+%  it contains a field 'elike' with the problem setup.  This may be useful to
+%  pass to elEval(...), etc.
+%
+\end{lstlisting}
+
+\linesect{elModelSumm}
+\begin{lstlisting}[commentstyle=\ttfamily]
+function elModelSumm(res, names)
+% Print some basic information about the EL model solution 'res'
+%
+% Usage:
+%
+%   elModelSumm(res, names)
+%
+%   'res' is a solution object returned by elSolve(...)
+%   'names' is an optional vector of names for the elements of theta
+%
+% Details:
+%
+%    Reports the estimated theta from the model, standard errors,
+%    and a likelihood ratio-based test for the validity of the
+%    overidentifying restrictions.
+%
+%    The standard errors are based on the normal asymptotic approximation
+%    to the estimator of theta, using a variance matrix based on the moments
+%    weighted by the computed 'pi' values.
+%
+\end{lstlisting}
+
+Sample usage and output from \texttt{elModelSumm}:
+
+\begin{verbatim}
+
+>> names = strvcat('theta1', 'theta2');
+>> elModelSumm(res, names);
+
+nObs:           1000
+Moments:        10
+Theta #elems:   2
+Method:         EL
+
+Degree of OID:    8
+Likelihood unres/restricted:     -6907.75528 /  -6910.03657
+LR stat:           4.56258
+Chi-square q:      0.19686
+Using empirical likelihood
+
+Estimated theta (and asymptotic stderr):
+
+              theta1       1.03688      ( 0.02451)
+              theta2       2.10858      ( 0.15262)
+
+\end{verbatim}
+
+\linesect{elLRTest}
+
+See \texttt{matelike/demos/runSimpleDemo.m} for an example.
+
+\begin{lstlisting}[commentstyle=\ttfamily]
+function [pval,lrstat] = elLRTest(elres, R, b, joint)
+% Computes an empirical likelihood ratio test of the hypotheses 'R*theta = b'
+%
+% Usage:
+%
+%    testres = elLRTest(elres)
+% 
+%    testres = elLRTest(elres, R, b, joint)
+%
+% Inputs:
+%
+%    'elres' is a result structure returned by elSolve
+%
+%    'R' is a K x nTheta matrix of linear hypotheses to test, while 'b' is a
+%        K x 1 vector of values to test R against. If 'joint' is
+%        omitted or false, then each row of the matrix is a separate
+%        linear hypothesis to be tested of the form:
+%
+%            H0:  R(k,:) * theta = b
+%
+%        If 'joint' is true, then the vector hypothesis: H0: hyp * theta = b
+%        is tested.
+%
+%        If 'R' is omitted, by default elLRTest tests separately that each
+%        element of theta = 0. (So it is equivalent to 'hyp = eye(nTheta)')
+%
+% Outputs:
+%
+%    'pval' is K x 1 vector for separate estimation or a scalar for joint
+%        estimation. It is the p-value for the LR test: the probability under
+%        the null that the LR statistic would be at least as large as the one
+%        obtained. It comes from the CDF of a chi-squared(dof) distribution,
+%        where 'dof' is the rank of the hypothesis. If 'joint' is false,
+%        separate p-values are computed for each hypothesis.
+%
+%    'lrstat' the LR statistic obtained from each hypothesis:
+%
+%        LR = -2 * ( L(theta_restricted) - L(theta_unres) )
+%
+% Notes:
+%
+%    Each test requires re-solving the model, so it may take some time for a
+%    large model.
+%
+\end{lstlisting}
+
+\linesect{elEval}
+
+\begin{lstlisting}[commentstyle=\ttfamily]
+function res = elEval(elike, method, theta, p, lambda)
+% Evaluates the empirical likelihood function at the given point
+%
+% Usage:
+%    res = elEval(elike, theta, p, lambda);
+%
+% 'elike' should be a structure obtained from elSetup(...)
+%
+% 'method' is 'EL','ET', or a CR constant parameter
+%
+% 'lambda' contains the Lagrange multipliers, but may be omitted
+%          if you don't want the Hessian.
+%
+% 'res' contains the following fields:
+%    'res.f'      --  objective function
+%    'res.fgrad'  --  gradient of objective
+%    'res.H'      --  Hessian of the Lagrangian (empty if lambda missing)
+%    'res.c'      --  constraints ( sum(pi(i) * m(i) )
+%    'res.cJ'     --  Jacobian of moments per observation
+%    'res.mom'    --  Moment conditions for each observation:
+%                       an (nObs x nMom) matrix with one column for each
+%                       moment condition and one row for each observation.
+%
+\end{lstlisting}
+
+\linesect{linearIV}
+
+\begin{lstlisting}[commentstyle=\ttfamily]
+function res = linearIV(X, Z, y, meth, endogVars)
+% Solves an instrumental variables problem using linear methods
+%
+% Can use either two-stage least squares (TSLS) or limited-information
+% maximum likelihood (LIML). OLS is also an option, though it ignores Z
+% may be inconsistent.
+%
+% Usage:
+%
+%   res = linearIV(X, Z, y, method, endogVars)
+%
+%   'X' is a matrix containing the structural variables
+%
+%   'Z' is a matrix containing the instruments. If some structural
+%       variables are exogenous and to be used as instruments, the should
+%       appear in Z as well as X.
+%
+%   'y' is a vector of the dependent variable
+%
+%   'method' is 'TSLS', 'LIML', or 'OLS'
+%       (OLS is included for comparison, despite being inconsistent)
+%
+%   'endogVars' is a vector with length equal to the number of structural
+%       variables. An entry contains 1 (or true) if the corresponding
+%       column of X represents an endogenous variable.
+%       endogVars is only used for LIML -- it may be omitted in other cases
+%
+% The returned structure 'res' contains:
+%
+%    'res.theta'   -- estimated coefficients on 'X'
+%    'res.k'       -- in the LIML case, the value of the k parameter
+%                     computed for the k-class estimator. Otherwise
+%                     left blank.
+%
+\end{lstlisting}
+
+\linesect{gmmSolve}
+\begin{lstlisting}[commentstyle=\ttfamily]
+function res = gmmSolve(elike, thetaGuess, varargin)
+% Solves for theta using 2-step GMM.
+%
+% Usage:
+%
+%   res = gmmSolve(elike, thetaGuess, W1, ...)
+%
+% Inputs:
+%
+%   'elike' is a structure containing the problem definition. It must
+%           be created by:  elike = elSetup(...);  See 'help elSetup'
+%
+%   'thetaGuess' is an optional starting guess for theta.
+%
+%   'W1' is an optional first-stage weighting matrix. The identity
+%           matrix is used if W1 is not provided.
+%
+% Outputs:
+%
+%   'res' is a structure like that returned by elSolve(...), containing
+%         'res.theta' with the estimated value of theta and 'res.V'
+%         with the estimated variance of theta.
+%    
+% Details:
+%
+%    This is not a very sophisticated GMM implementation and is included only
+%    for simple comparisons. The second-step weighting matrix is
+%    stored in 'res.elike.W'.
+%
+\end{lstlisting}

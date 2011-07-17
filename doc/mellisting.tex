@@ -1,0 +1,403 @@
+\linesect{elLoad}
+\begin{lstlisting}
+  Loads ipopt, matelike, and intlab libraries
+ \end{lstlisting}
+{\small\textbf{Usage:}}
+\begin{lstlisting}
+ 
+     "\texttt{elLoad}"
+  or:
+      "\texttt{elLoad(solver, forceReload)}"
+ \end{lstlisting}
+{\small\textbf{Inputs:}}
+\begin{lstlisting}
+ 
+     "\texttt{solver}" is an optional string specifying the nonlinear solver to use.
+ 
+     Valid solver options are:
+ 
+         'zipsolver' -- matElike's default, built-in solver
+         'ipopt' -- the Ipopt solver, which require the Ipopt MEX interface and
+                 library to be installed
+         'fmincon' -- the fmincon solver from Matlab's optimization
+                 toolbox. This is only available with optimization toolbox
+                 version 4.0 (Matlab R2008a) or greater, as the older versions
+                 lack support for analytic Hessians with inequality constraints.
+ 
+      In general, Ipopt is the most robust solver, but 'zipsolver' works well
+      for most problems as long as they're reasonably well scaled. 'fmincon'
+      appears to be less reliable, but slightly faster than zipsolver.
+  
+  IMPORTANT: You will need to edit BASEPATH below to point to the directory
+  containing the 'matelike'  and 'zipsolver' folders on your system.
+ 
+
+\end{lstlisting}
+\linesect{elSetup}
+\begin{lstlisting}
+  Initializes an EL (or other Cressie-Read) problem
+ \end{lstlisting}
+{\small\textbf{Usage:}}
+\begin{lstlisting}
+ 
+    "\texttt{elike = elSetup(nObs, nMom, nTheta, momFunction, ...)}"
+ \end{lstlisting}
+{\small\textbf{Inputs:}}
+\begin{lstlisting}
+      "\texttt{nObs, nMom, nTheta}" are the number of observations, number of
+          moment conditions, and number of elements in theta
+ 
+      Extra arguments may follow 'momFunction' to set various options
+          for the optimization process. Options are specified as pairs,
+          where the first argument is the option name and the second
+          is the option value, like:
+ 
+              "\texttt{elSetup(nobs,nmom,ntheta,func, 'verbose', false)}"
+ 
+          which sets the 'verbose' option to false, greatly reducing the
+          output displayed.
+ 
+      "\texttt{momFunction}" is a function handle to compute the moment
+          conditions for each observation, with the form:
+       
+         "\texttt{M = momFunction(theta, elike, mnum, newTheta)}"
+ 
+           "\texttt{mnum}" indicates which moment to evaluate, "\texttt{theta}" is the point
+           at which to evaluate it, and "\texttt{elike}" is the same structure
+           that was returned from elSetup. If you need to pass additional
+           paraneters to your function, you can stash them in "\texttt{elike}" as
+           fields.
+ 
+           "\texttt{newTheta}" is true if this theta differs from the one
+           that was passed in the most recent call. If you need to
+           precompute some values only once for each theta, "\texttt{newTheta}"
+           tells you when it's time to redo that computation.
+ 
+           The returned value M should be an nObs x 1 vector containing
+           moment condition "\texttt{mnum}" evaluated at each observation.
+           
+      *** IMPORTANT restrictions on momFunction ***
+ 
+           elSolve will use automatic differentiation to compute the
+           derivatives of momFunction. For smooth functions computed
+           analytically, this should work transparently. It will NOT work if
+           momFunction uses some iterative algorithm internally, is
+           non-differentiable, or uses some obscure external functions that
+           are not understood by the differentiation library (Intlab).
+ 
+           The matrix returned by momFunction must be of the special AD
+           type. This will happen by automatically if the result is produced by
+           operations involving "\texttt{theta}", but it will fail if you manually
+           initialize M with something like "\texttt{M = zeros(nObs,1)}".  If you find
+           this initialization convenient, you can use:
+              "\texttt{M = zeros(nObs,1) * theta(1)}",
+           which will ensure that M has the correct type.
+ 
+           If automatic differentiation is not suitable for your model, you
+           can provide functions in "\texttt{elike.userCompJac}" and
+           "\texttt{elike.userCompHessTheta}" to compute them. (See elLinearIV for
+           an example.)
+ \end{lstlisting}
+{\small\textbf{Output:}}
+\begin{lstlisting}
+ 
+      "\texttt{elike}" is a structure that can be passed to elSolve
+ \end{lstlisting}
+{\small\textbf{Requirements:}}
+\begin{lstlisting}
+ 
+      You must have Intlab installed to use elSetup. You also need
+      to call "\texttt{elLoad}" sometime before elSetup to initialize the
+      matelike library.
+ 
+  Author:  John Zedlewski (jzedlewski@hbs.edu)
+ 
+
+\end{lstlisting}
+\linesect{elSolve}
+\begin{lstlisting}
+  Solves the empirical likelihood (or other CR-family) model in elike
+ \end{lstlisting}
+{\small\textbf{Primary Usage:}}
+\begin{lstlisting}
+ 
+     "\texttt{res = elSolve(elike, method, thetaGuess, pguess, ...)}"
+ \end{lstlisting}
+{\small\textbf{Inputs:}}
+\begin{lstlisting}
+  
+    "\texttt{elike}" is a structure containing the problem definition. It must
+            be created by:  elike = elSetup(...);  See "\texttt{help elSetup}"
+ 
+    "\texttt{method}" specifies which objective function to use. It can be 'EL'
+            for empirical likelihood, 'ET' for exponential tilting, or a
+            numerical value indicating the Cressie-Read lambda parmeter to
+            use. If 'method' is 'GMM', a simple two-stage GMM estimator
+            will be used (ignoring pguess and other EL-specific params).
+             
+    "\texttt{thetaGuess}" is the starting value for the theta parameters.
+ 
+    "\texttt{pguess}" is an optional starting value for the pi parameters. If this
+             argument is empty ([]) or omitted, pi=1/N will be used.
+ 
+ \end{lstlisting}
+{\small\textbf{Outputs:}}
+\begin{lstlisting}
+ 
+    "\texttt{res}" is a structure containing:
+ 
+       "\texttt{res.theta}"   -- estimated value for theta
+       "\texttt{res.lagmult}" -- lagrange multipliers on moment constraints
+       "\texttt{res.p}"       -- estimated pi for each observation
+       "\texttt{res.numiter}" -- number of iterations taken
+       "\texttt{res.fval}"    -- value of objective function at optimum
+       "\texttt{res.flag}"    -- set to 0 if optimization succceeded, nonzero otherwise
+ \end{lstlisting}
+{\small\textbf{Details:}}
+\begin{lstlisting}
+ 
+    elSolve will use the 'zipsolver' matlab package by default. If you have
+    Ipopt and its matlab interface installed, set "\texttt{elike.solver = 'ipopt'}" to
+    use it (Ipopt is more robust and, for large problems, faster than
+    zipsolver).
+ 
+    See 'help elSetup' for more info on configuring EL problems.
+    
+  Author: John Zedlewski (jzedlewski@hbs.edu)  
+  
+
+\end{lstlisting}
+\linesect{elLinearIV}
+\begin{lstlisting}
+  Solves a linear instrumental variables problem with EL
+ \end{lstlisting}
+{\small\textbf{Usage:}}
+\begin{lstlisting}
+ 
+    "\texttt{res = elLinearIV(X, Z, y, elMethod)}"
+ \end{lstlisting}
+{\small\textbf{Inputs:}}
+\begin{lstlisting}
+ 
+    "\texttt{X}" is a matrix containing the structural variables
+    "\texttt{Z}" is a matrix containing the instruments
+    "\texttt{y}" is a vector of the dependent variable
+    "\texttt{elMethod}" specifies the method to use ('EL','ET', or a Cressie-Read lambda
+        value). You can omit this argument to use the default 'EL'
+ 
+   The returned structure "\texttt{res}" is the same as that returned by elSolve. The
+   field "\texttt{res.theta}" contains the estimates for the coefficients on X. Note that
+   it contains a field "\texttt{elike}" with the problem setup.  This may be useful to
+   pass to "\texttt{elEval(...)}", etc.
+ 
+
+\end{lstlisting}
+\linesect{elModelSumm}
+\begin{lstlisting}
+  Print some basic information about the EL model solution "\texttt{res}"
+ \end{lstlisting}
+{\small\textbf{Usage:}}
+\begin{lstlisting}
+ 
+    "\texttt{[stderr,oidstat] = elModelSumm(res, names, [quiet])}"
+ \end{lstlisting}
+{\small\textbf{Inputs:}}
+\begin{lstlisting}
+ 
+    "\texttt{res}" is a solution object returned by elSolve(...)
+    "\texttt{names}" is an optional vector of names for the elements of theta
+    "\texttt{quiet}" is an optional parameter -- if it's true, printing is suppressed
+ \end{lstlisting}
+{\small\textbf{Outputs:}}
+\begin{lstlisting}
+ 
+     "\texttt{stderr}" is a column vector of computed standard errors.
+     "\texttt{oidstat}" is the chi-squared statistic from an LR
+         test of overidentifying restrictions.
+ \end{lstlisting}
+{\small\textbf{Details:}}
+\begin{lstlisting}
+ 
+     Reports the estimated theta from the model, standard errors,
+     and a likelihood ratio-based test for the validity of the
+     overidentifying restrictions.
+ 
+     The standard errors are based on the normal asymptotic approximation
+     to the estimator of theta, using a variance matrix based on the moments
+     weighted by the computed "\texttt{pi}" values.
+ 
+
+\end{lstlisting}
+\linesect{elEval}
+\begin{lstlisting}
+  Evaluates the empirical likelihood function at the given point
+ \end{lstlisting}
+{\small\textbf{Usage:}}
+\begin{lstlisting}
+     res = elEval(elike, theta, p, lambda);
+ 
+  "\texttt{elike}" should be a structure obtained from elSetup(...)
+ 
+  "\texttt{method}" is 'EL','ET', or a CR constant parameter
+ 
+  "\texttt{lambda}" contains the Lagrange multipliers, but may be omitted
+           if you don't want the Hessian.
+ 
+  "\texttt{res}" contains the following fields:
+     "\texttt{res.f}"      --  objective function
+     "\texttt{res.fgrad}"  --  gradient of objective
+     "\texttt{res.H}"      --  Hessian of the Lagrangian (empty if lambda missing)
+     "\texttt{res.c}"      --  constraints ( sum(pi(i) * m(i) )
+     "\texttt{res.cJ}"     --  Jacobian of moments per observation
+     "\texttt{res.mom}"    --  Moment conditions for each observation:
+                        an (nObs x nMom) matrix with one column for each
+                        moment condition and one row for each observation.
+ 
+
+\end{lstlisting}
+\linesect{elLRTest}
+\begin{lstlisting}
+  Computes an empirical likelihood ratio test of the hypotheses "\texttt{R*theta = b}"
+ \end{lstlisting}
+{\small\textbf{Usage:}}
+\begin{lstlisting}
+ 
+     "\texttt{testres = elLRTest(elres)}"
+  
+     "\texttt{testres = elLRTest(elres, R, b, joint)}"
+ \end{lstlisting}
+{\small\textbf{Inputs:}}
+\begin{lstlisting}
+ 
+     "\texttt{elres}" is a result structure returned by elSolve
+ 
+     "\texttt{R}" is a K x nTheta matrix of linear hypotheses to test, while "\texttt{b}" is a
+         K x 1 vector of values to test R against. If "\texttt{joint}" is
+         omitted or false, then each row of the matrix is a separate
+         linear hypothesis to be tested of the form:
+ 
+             H0:  R(k,:) * theta = b
+ 
+         If "\texttt{joint}" is true, then the vector hypothesis: H0: hyp * theta = b
+         is tested.
+ 
+         If "\texttt{R}" is omitted, by default elLRTest tests separately that each
+         element of theta = 0. (So it is equivalent to "\texttt{hyp = eye(nTheta)}")
+ \end{lstlisting}
+{\small\textbf{Outputs:}}
+\begin{lstlisting}
+ 
+     "\texttt{pval}" is K x 1 vector for separate estimation or a scalar for joint
+         estimation. It is the p-value for the LR test: the probability under
+         the null that the LR statistic would be at least as large as the one
+         obtained. It comes from the CDF of a chi-squared(dof) distribution,
+         where "\texttt{dof}" is the rank of the hypothesis. If "\texttt{joint}" is false,
+         separate p-values are computed for each hypothesis.
+ 
+     "\texttt{lrstat}" the LR statistic obtained from each hypothesis:
+ 
+         LR = -2 * ( L(theta_restricted) - L(theta_unres) )
+ 
+  Notes:
+ 
+     Each test requires re-solving the model, so it may take some time for a
+     large model.
+ 
+
+\end{lstlisting}
+\linesect{elConfRegion}
+\begin{lstlisting}
+  Computes an EL likelihood-ratio confidence interval and possibly plots it.
+  Currently only supports univariate confidence intervals.
+ \end{lstlisting}
+{\small\textbf{Primary Usage:}}
+\begin{lstlisting}
+ 
+     "\texttt{elConfRegion(elres, [whichVars], [confVals], [doPlot], [plotOpt])}"
+ 
+         Arguments in [ ] are optional.
+ 
+ \end{lstlisting}
+{\small\textbf{Alternative Usage:}}
+\begin{lstlisting}
+ 
+     "\texttt{elConfRegion(elres, whichVars, confVals, 'precise')}"
+ 
+         Slightly more accurate, but much slower, optimization-based means of
+         finding confidence regions.
+ \end{lstlisting}
+{\small\textbf{Inputs:}}
+\begin{lstlisting}
+ 
+     "\texttt{elres}" is a result structure previously returned by elSolve(...)
+ 
+     "\texttt{whichVars}" specifies the indices of theta for which confidence regions
+         are desired. Leave as '[]' or omit to compute CRs for all indices.
+ 
+     "\texttt{confVals}" specifies one or more confidence levels (e.g. [0.95,0.99]) to
+         consider. Defaults to 0.95
+ 
+     "\texttt{doPlot}" specifies that the profile p-value should be plotted
+ 
+     "\texttt{plotOpt}" is an optional structure with fields specifying plotting
+         options. Options include "\texttt{plotOpt.numPoints}" (number of points to sample),
+         "\texttt{plotOpt.varnames}" (a cell array of variable names), "\texttt{plotOpt.xciLabel}"
+         (whether to label the confidence interval on the x-axis), and
+         "\texttt{plotOpt.horizCR}" (whether to draw a horizontal line for the
+         confidence interval).
+ 
+
+\end{lstlisting}
+\linesect{elValues}
+\begin{lstlisting}
+  Computes the profile empirical likelihood, p-value, or LR test statistic at
+  various points. Useful for plotting profile likelihoods.
+ 
+  The LR stat corresponds to the null hypothesis that:
+ 
+        "\texttt{theta(fixvars) = thetaList(fixvars,i)}"
+ 
+  The test has "\texttt{length(fixvars)}" degrees of freedom unless otherwise specified.
+ \end{lstlisting}
+{\small\textbf{Usage:}}
+\begin{lstlisting}
+ 
+    "\texttt{[ll,lr,pv] = elValues(elres, thetaList, fixvars, [dof])}"
+ \end{lstlisting}
+{\small\textbf{Inputs:}}
+\begin{lstlisting}
+ 
+    "\texttt{elres}" is a result structure previously returned by elSolve(...)
+            solving the unconstrained problem.
+ 
+    "\texttt{thetaList}" is a matrix of size nFixed x nProfiles, where nFixed is the
+            length of "\texttt{fixvars}" and nProfiles is the number of points at
+            which to compute the profile likelihood.  Each column is a single
+            value of the parameter vector at which to compute the
+            likelihood.
+ 
+    "\texttt{fixvars}" is an integer vector of length nFixed indicating which elements
+            of theta should be held fixed. If fixvars is empty, it indicates
+            that all elements of theta are fixed (only the p's are
+            free). These all-theta-fixed problems can be solved faster.
+ 
+     "\texttt{dof}" specifies the number of degrees of freedom to use when computing
+         the p-values. (Only needed if p-values are computed)
+ \end{lstlisting}
+{\small\textbf{Outputs:}}
+\begin{lstlisting}
+ 
+     "\texttt{ll}" is a row vector containing the profile empirical log-likelihood at each
+           point in thetaList. (This is the log likelihood obtained after
+           maximizing over "\texttt{p}" and the theta elements not included in "\texttt{fixvars}",
+           but holding the other theta elements fixed.)
+ 
+     "\texttt{lr}" contains the profile empirical likelihood ratios (comparing the
+          restricted and unrestricted models)
+ 
+     "\texttt{pv}" contains the profile empirical p-value comparing the restricted and
+          unrestricted models(based on the chi-squared approximation to the
+          distribution of the LR stat)
+ 
+
+\end{lstlisting}

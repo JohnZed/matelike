@@ -1,0 +1,92 @@
+;; RefTeX parse info file
+;; File: /data/src/matelike/doc/matelikedoc.tex
+;; User: johnzed (John Zedlewski)
+
+(set reftex-docstruct-symbol '(
+
+
+(xr nil "\\\\\\\\\\\\")
+
+(index-tags)
+
+(is-multi nil)
+
+(bibview-cache ("Mullahy:1997p1042" . "J Mullahy 1997, Instr. Vari. Estim. Count Data, The Review of Economics and Statistics") ("Owen:2001p759" . "Art B Owen 2001, Empirical Likelihood, Chapman {\\&} Hall/CRC") ("Guggenberger:2005p558" . "P Guggenberger & R Smith 2005, GENER. EMPIR. LIKEL. ESTIM. TESTS, Econometric Theory") ("Mittelhammer:2003p508" . "R Mittelhammer 2003, Empir. Evid. Conc. Finite Sample, emlab.berkeley.edu") ("Hansen:1996p555" . "L Hansen etal. 1996, Finite Sample Prop. Some Altern., Journal of Business {\\&} Economic Statistics") ("Imbens:1998p513" . "G Imbens etal. 1998, Inform. Theor. Appr. Infer. Moment, Econometrica") ("Newey:2004p495" . "W Newey & R Smith 2004, Higher Order Properties GMM Generalized, Econometrica") ("Imbens:2002p381" . "G Imbens 2002, Gener. Meth. Moments Empir. Likel., Journal of Business {\\&} Economic Statistics") ("Imbens:2008p563" . "G Imbens & R Spady PERF. EMPIR. LIKEL. ITS GENER., dimension"))
+
+(master-dir . "/data/src/matelike/doc/")
+
+(label-numbers)
+
+(bof "/data/src/matelike/doc/matelikedoc.tex")
+
+(toc "toc" "    1 Introduction" "/data/src/matelike/doc/matelikedoc.tex" nil 2 "1" "\\section{Introduction}" 1194)
+
+("sec:introduction" "s" "\\melike is a Matlab package that simplifies the process of estimating Empirical Likelihood and relat" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "    2 A simple example" "/data/src/matelike/doc/matelikedoc.tex" nil 2 "2" "\\section{A simple example}" 2286)
+
+("sec:simple-example" "s" "Later sections will provide much more detail on the models and methods used by \\melike, but it may b" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+("eq:momExample" "e" "\\Exb{(y - \\beta' \\, x) \\, z^{(j)}} = 0 \\qquad \\text{for $j = 1 \\ldots J$} " "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "    3 Empirical likelihood: theory and implementation" "/data/src/matelike/doc/matelikedoc.tex" nil 2 "3" "\\section{Empirical likelihood: theory and implementation}" 4820)
+
+("sec:empirical-likelihood" "s" "Empirical likelihood (EL) provides a method to estimate the parameters of a model defined by estimat" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "      3.1 Basic EL model" "/data/src/matelike/doc/matelikedoc.tex" nil 3 "3.1" "\\subsection{Basic EL model}" 5854)
+
+("sec:basic-el-model" "s" "Throughout this discussion, we assume that the data are a sample of $N$ iid observations $z_i$\\footn" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+("eq:elmax" "e" "\\hat{\\beta} = \\argmax_{\\pi, \\, \\beta} \\sumin \\ln \\pi_i " "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+("eq:crmax" "e" "\\hat{\\beta}^{CR(\\lambda)} = \\argmin_{\\pi,\\beta} I_\\lambda(\\iota/N,\\pi) \\quad \\text{subject to } \\sum" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "      3.2 EL computation" "/data/src/matelike/doc/matelikedoc.tex" nil 3 "3.2" "\\subsection{EL computation}" 10067)
+
+("sec:el-computation" "s" "In general, users do not need to understand the methods used by \\melike to estimate EL models. These" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "    4 Basic \\melike installation and usage" "/data/src/matelike/doc/matelikedoc.tex" nil 2 "4" "\\section{Basic  \\melike installation and usage}" 15169)
+
+("sec:installing-melike" "s" "Note that all \\melike functions support Matlab's online help system, so you can type \\texttt{help el" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "      4.1 Installation" "/data/src/matelike/doc/matelikedoc.tex" nil 3 "4.1" "\\subsection{Installation}" 15449)
+
+(toc "toc" "      4.2 Using IPOPT (optional)" "/data/src/matelike/doc/matelikedoc.tex" nil 3 "4.2" "\\subsection{Using IPOPT (optional)}" 16487)
+
+(toc "toc" "      4.3 Basic \\melike usage" "/data/src/matelike/doc/matelikedoc.tex" nil 3 "4.3" "\\subsection{Basic \\melike usage}" 18194)
+
+("sec:basic-melike" "s" "Trying out the basic example in section \\ref{sec:simple-example} of this document will be the best w" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "    5 Empirical and simulation results" "/data/src/matelike/doc/matelikedoc.tex" nil 2 "5" "\\section{Empirical and simulation results}" 20194)
+
+("sec:sample-results" "s" "Both asymptotic theory and Monte Carlo simulations indicate that empirical ilkelihood can deliver mo" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "      5.1 Dynamic panel model" "/data/src/matelike/doc/matelikedoc.tex" nil 3 "5.1" "\\subsection{Dynamic panel model}" 20545)
+
+("sec:linear-iv" "s" "Imbens (2002) discusses the following dynamic panel data model with fixed effects and no covariates." "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+("tab:dpd-res" "t" "Monte Carlo results for dynamic panel model: $N = 1500$, $T = 12$" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "      5.2 Poisson-IV model" "/data/src/matelike/doc/matelikedoc.tex" nil 3 "5.2" "\\subsection{Poisson-IV model}" 24282)
+
+("sec:poisson-iv-model" "s" "\\section{Appendix: \\melike function reference} \\newcommand\\linesect[1]{\\hrule \\vspace{5pt} \\subsecti" "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+("tab:cig-res" "t" nil "/data/src/matelike/doc/matelikedoc.tex" nil "")
+
+(toc "toc" "    6 Appendix: \\melike function reference" "/data/src/matelike/doc/matelikedoc.tex" nil 2 "6" "\\section{Appendix: \\melike function reference}" 27868)
+
+(toc "toc" "      * elLoad" "/data/src/matelike/doc/matelikedoc.tex" nil 3 "*" "\\subsection*{elLoad}" 28050)
+
+(toc "toc" "    7 Appendix: Changes" "/data/src/matelike/doc/matelikedoc.tex" nil 2 "7" "\\section{Appendix: Changes}" 40752)
+
+("changes" "s" "\\begin{itemize} " "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(toc "toc" "    8 References" "/data/src/matelike/doc/matelikedoc.tex" nil 2 "8" "\\section{References}" 40864)
+
+("sec:references" "s" "\\bibliographystyle{plain} \\bibliography{elpapers} " "/data/src/matelike/doc/matelikedoc.tex" nil)
+
+(bib "/data/src/matelike/doc/elpapers.bib")
+
+(eof "/data/src/matelike/doc/matelikedoc.tex")
+))
+
